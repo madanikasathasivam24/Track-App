@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// Firestore security rules for the trip live-location tracking feature (see
+// src/services/firebase/firestore.ts). request.auth.uid is always the same
+// id as Track-api's User.id, because every session signs into Firebase with
+// a custom token minted by Track-api's POST /auth/firebase-token (uid = the
+// Track-api user id) — see src/hooks/useFirebaseTrackingAuth.ts. There is no
+// server-verified check here that the reader is actually a member of the
+// trip (Firestore can't see Track-api's MongoDB membership records); read
+// access is scoped only to "any signed-in Track user". Deploy via the
+// Firebase console's Rules editor (no Firebase CLI available in this repo's
+// dev environment).
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /trips/{tripId}/locations/{userId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

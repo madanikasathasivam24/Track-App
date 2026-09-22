@@ -1,0 +1,71 @@
+diff --git a/node_modules/react-dom/cjs/react-dom-client.development.js b/node_modules/react-dom/cjs/react-dom-client.development.js
+index 771ecad..b15a227 100644
+--- a/node_modules/react-dom/cjs/react-dom-client.development.js
++++ b/node_modules/react-dom/cjs/react-dom-client.development.js
+@@ -22202,15 +22202,26 @@
+       return "head" === type;
+     }
+     function removeChild(parentInstance, child) {
++      // Third-party DOM managers (e.g. the Google Maps JS SDK reparenting
++      // AdvancedMarker content between its own internal panes) can detach or
++      // move a node out from under React between commit and this call,
++      // especially during a Fast Refresh full-tree remount. If the node is
++      // already gone from this parent, the deletion's intent is already
++      // satisfied — removing it again would throw NotFoundError.
++      if (child.parentNode !== parentInstance) return;
+       parentInstance.removeChild(child);
+     }
+     function removeChildFromContainer(container, child) {
+-      (9 === container.nodeType
+-        ? container.body
+-        : "HTML" === container.nodeName
+-          ? container.ownerDocument.body
+-          : container
+-      ).removeChild(child);
++      var actualParent =
++        9 === container.nodeType
++          ? container.body
++          : "HTML" === container.nodeName
++            ? container.ownerDocument.body
++            : container;
++      // See removeChild above — same guard against a third-party DOM manager
++      // detaching/moving a node before React's own deletion commit reaches it.
++      if (child.parentNode !== actualParent) return;
++      actualParent.removeChild(child);
+     }
+     function clearHydrationBoundary(parentInstance, hydrationInstance) {
+       var node = hydrationInstance,
+diff --git a/node_modules/react-dom/cjs/react-dom-profiling.development.js b/node_modules/react-dom/cjs/react-dom-profiling.development.js
+index c8b583c..e735edc 100644
+--- a/node_modules/react-dom/cjs/react-dom-profiling.development.js
++++ b/node_modules/react-dom/cjs/react-dom-profiling.development.js
+@@ -22210,15 +22210,23 @@
+       return "head" === type;
+     }
+     function removeChild(parentInstance, child) {
++      // See react-dom-client.development.js's removeChild — same guard
++      // against a third-party DOM manager (Google Maps) detaching/moving a
++      // node before React's own deletion commit reaches it.
++      if (child.parentNode !== parentInstance) return;
+       parentInstance.removeChild(child);
+     }
+     function removeChildFromContainer(container, child) {
+-      (9 === container.nodeType
+-        ? container.body
+-        : "HTML" === container.nodeName
+-          ? container.ownerDocument.body
+-          : container
+-      ).removeChild(child);
++      var actualParent =
++        9 === container.nodeType
++          ? container.body
++          : "HTML" === container.nodeName
++            ? container.ownerDocument.body
++            : container;
++      // See removeChild above — same guard against a third-party DOM manager
++      // detaching/moving a node before React's own deletion commit reaches it.
++      if (child.parentNode !== actualParent) return;
++      actualParent.removeChild(child);
+     }
+     function clearHydrationBoundary(parentInstance, hydrationInstance) {
+       var node = hydrationInstance,

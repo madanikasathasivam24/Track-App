@@ -1,0 +1,28 @@
+diff --git a/node_modules/expo-location/build/ExpoLocation.web.js b/node_modules/expo-location/build/ExpoLocation.web.js
+index c7b21a8..aeeef08 100644
+--- a/node_modules/expo-location/build/ExpoLocation.web.js
++++ b/node_modules/expo-location/build/ExpoLocation.web.js
+@@ -119,8 +119,8 @@ export default {
+                 resolve(lastKnownPosition);
+             };
+             navigator.geolocation.getCurrentPosition(resolver, reject, {
+-                maximumAge: Infinity,
+-                enableHighAccuracy: (options.accuracy ?? 0) > LocationAccuracy.Balanced,
++                enableHighAccuracy: true,
++                maximumAge: 0,
+                 ...options,
+             });
+         });
+@@ -148,7 +148,11 @@ export default {
+                     watchId,
+                     location: lastKnownPosition,
+                 });
+-            }, undefined, options);
++            }, undefined, {
++                enableHighAccuracy: true,
++                maximumAge: 0,
++                ...options,
++            });
+             resolve(watchId);
+         });
+     },
